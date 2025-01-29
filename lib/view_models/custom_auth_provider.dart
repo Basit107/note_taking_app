@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class AuthProvider with ChangeNotifier {
+class CustomAuthProvider with ChangeNotifier {
+  CustomAuthProvider();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _user;
 
