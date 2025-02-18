@@ -6,6 +6,7 @@ import 'view_models/custom_auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'views/login_screen.dart';
 import 'view_models/note_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   await Firebase.initializeApp(
@@ -31,8 +32,20 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Note Taking App',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.blue,
+            brightness: Brightness.light,
+          ),
           useMaterial3: true,
+          textTheme: GoogleFonts.poppinsTextTheme(),
+        ),
+        darkTheme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.blue,
+            brightness: Brightness.dark,
+          ),
+          textTheme: GoogleFonts.poppinsTextTheme(),
         ),
         home: Consumer<CustomAuthProvider>(
           builder: (context, authProvider, _) {

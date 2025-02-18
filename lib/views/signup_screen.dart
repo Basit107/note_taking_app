@@ -5,6 +5,8 @@ import 'package:note_taking_app/view_models/custom_auth_provider.dart';
 import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
+
   @override
   _SignupScreenState createState() => _SignupScreenState();
 }

@@ -4,6 +4,8 @@ import 'package:note_taking_app/models/note.dart';
 
 class NotesProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  FirebaseFirestore get firestore => _firestore;
+
   List<Note> _notes = [];
 
   List<Note> get notes => _notes;
@@ -15,9 +17,20 @@ class NotesProvider with ChangeNotifier {
     // Split into words and remove empty/duplicate entries
     return combinedText
         .split(RegExp(r'\W+')) // Split by non-word characters
-        .where((word) => word.isNotEmpty) // Remove empty strings
-        .toSet() // Remove duplicates
+        .where((word) => word.isNotEmpty)
+        .toSet()
         .toList();
+  }
+
+  // Get the total number of notes
+  Future<int> getNotesCount(String userId) async {
+    final snapshot = await _firestore
+        .collection('notes')
+        .where('userId', isEqualTo: userId)
+        .count()
+        .get();
+
+    return snapshot.count ?? 0;
   }
 
   Future<void> fetchNotes(String userId) async {
@@ -25,11 +38,14 @@ class NotesProvider with ChangeNotifier {
       final snapshot = await _firestore
           .collection('notes')
           .where('userId', isEqualTo: userId)
+          .orderBy('createdAt', descending: true)
           .get();
       _notes = snapshot.docs.map((doc) => Note.fromFirestore(doc)).toList();
+      print('Manual query found ${snapshot.docs.length} docs');
       notifyListeners();
     } catch (e) {
       rethrow;
+      print(e);
     }
   }
 
