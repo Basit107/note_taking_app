@@ -8,6 +8,10 @@ class CustomAuthProvider with ChangeNotifier {
 
   User? get user => _user;
 
+  FirebaseAuth auth() {
+    return _auth;
+  }
+
   Future<void> signUp(String email, String password) async {
     try {
       await _auth.createUserWithEmailAndPassword(

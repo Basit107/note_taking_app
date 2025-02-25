@@ -28,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<CustomAuthProvider>(context);
     final notesProvider = Provider.of<NotesProvider>(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(title: Text('Notes'), actions: [
@@ -37,7 +38,63 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => {},
             icon: Icon(Icons.account_circle, size: 30, color: Colors.white)),
       ]),
-      body: _buildNotesList(notesProvider, authProvider),
+      body: StreamBuilder(
+          stream: notesProvider.firestore
+              .collection("notes")
+              .where('userId', isEqualTo: authProvider.user!.uid)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Center(
+                child: Text(
+                  'No notes yet! Tap + to add one.',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
+              );
+            }
+            return ListView.builder(
+                itemCount: snapshot.data!.docs.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.limeAccent,
+                      radius: 35,
+                    ),
+                    title: Text(snapshot.data!.docs[index]['title']),
+                    subtitle: Text(snapshot.data!.docs[index]['content']),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AddEditNoteScreen(
+                          note: Note(
+                            noteId: snapshot.data!.docs[index].id,
+                            title: snapshot.data!.docs[index]['title'],
+                            content: snapshot.data!.docs[index]['content'],
+                            createdAt: snapshot.data!.docs[index]['createdAt'],
+                            userId: snapshot.data!.docs[index]['userId'],
+                          ),
+                        ),
+                      ),
+                    ),
+                    hoverColor:
+                        isDarkMode ? Colors.white70 : Colors.blueGrey[50],
+                    trailing: IconButton(
+                        onPressed: () => {},
+                        icon: Icon(Icons.favorite_outline)),
+                    contentPadding: EdgeInsets.all(12),
+                    minVerticalPadding: 11,
+                  );
+                });
+          }),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () => Navigator.push(
@@ -48,88 +105,87 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNotesList(
-      NotesProvider notesProvider, CustomAuthProvider authProvider) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  // Widget _buildNotesList(
+  //     NotesProvider notesProvider, CustomAuthProvider authProvider) {
+  //   final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return FutureBuilder(
-      future: notesProvider.firestore
-          .collection("notes")
-          .where('userId', isEqualTo: authProvider.user!.uid)
-          .get(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return Center(
-            child: Text(
-              'No notes yet! Tap + to add one.',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.bold,
-                color: isDarkMode ? Colors.white : Colors.black,
-              ),
-            ),
-          );
-        }
+  //   return StreamBuilder(
+  //     stream: notesProvider.firestore
+  //         .collection("notes")
+  //         .where('userId', isEqualTo: authProvider.user!.uid)
+  //         .snapshots(),
+  //     builder: (context, snapshot) {
+  //       if (snapshot.connectionState == ConnectionState.waiting) {
+  //         return Center(child: CircularProgressIndicator());
+  //       }
+  //       if (snapshot.hasError) {
+  //         return Center(child: Text('Error: ${snapshot.error}'));
+  //       }
+  //       if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+  //         return Center(
+  //           child: Text(
+  //             'No notes yet! Tap + to add one.',
+  //             style: GoogleFonts.poppins(
+  //               fontWeight: FontWeight.bold,
+  //               color: isDarkMode ? Colors.white : Colors.black,
+  //             ),
+  //           ),
+  //         );
+  //       }
 
-        return Container(
-          height: double.maxFinite,
-          width: double.maxFinite,
-          constraints: BoxConstraints.expand(),
-          // Add this
-          child: ListView.builder(
-            itemCount: snapshot.data!.docs.length,
-            itemBuilder: (ctx, index) {
-              final doc = snapshot.data!.docs[index];
-              final noteData = doc.data() as Map<String, dynamic>;
+  //       return Container(
+  //         height: double.maxFinite,
+  //         width: double.maxFinite,
+  //         constraints: BoxConstraints.expand(),
+  //         // Add this
+  //         child: ListView.builder(
+  //           itemCount: snapshot.data!.docs.length,
+  //           itemBuilder: (ctx, index) {
+  //             final doc = snapshot.data!.docs[index];
+  //             final noteData = doc.data();
 
-              return Row(
-                children: [
-                  Expanded(
-                    child: ListTile(
-                      title: Text(noteData['title']?.toString() ?? 'No Title'),
-                      subtitle:
-                          Text(noteData['content']?.toString() ?? 'No Content'),
-                      trailing: Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.edit),
-                            onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => AddEditNoteScreen(
-                                  note: Note(
-                                    noteId: doc.id,
-                                    title: noteData['title'],
-                                    content: noteData['content'],
-                                    createdAt: noteData['createdAt'],
-                                    userId: noteData['userId'],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.delete),
-                            onPressed: () => notesProvider.deleteNote(
-                              doc.id,
-                              authProvider.user!.uid,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
+  //             return Row(
+  //               children: [
+  //                 Expanded(
+  //                   child: ListTile(
+  //                     title: Text("noteData['title']"),
+  //                     subtitle: Text("noteData['content']"),
+  //                     trailing: Row(
+  //                       children: [
+  //                         IconButton(
+  //                           icon: Icon(Icons.edit),
+  //                           onPressed: () => Navigator.push(
+  //                             context,
+  //                             MaterialPageRoute(
+  //                               builder: (_) => AddEditNoteScreen(
+  //                                 note: Note(
+  //                                   noteId: doc.id,
+  //                                   title: noteData['title'],
+  //                                   content: noteData['content'],
+  //                                   createdAt: noteData['createdAt'],
+  //                                   userId: noteData['userId'],
+  //                                 ),
+  //                               ),
+  //                             ),
+  //                           ),
+  //                         ),
+  //                         IconButton(
+  //                           icon: Icon(Icons.delete),
+  //                           onPressed: () => notesProvider.deleteNote(
+  //                             "doc.id",
+  //                             "authProvider.user!.uid",
+  //                           ),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             );
+  //           },
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 }

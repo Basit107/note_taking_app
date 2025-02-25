@@ -29,28 +29,41 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Note Taking App',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blue,
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-          textTheme: GoogleFonts.poppinsTextTheme(),
+      debugShowCheckedModeBanner: false,
+      title: 'Note Taking App',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.light,
         ),
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blue,
-            brightness: Brightness.dark,
-          ),
-          textTheme: GoogleFonts.poppinsTextTheme(),
+        useMaterial3: true,
+        textTheme: GoogleFonts.poppinsTextTheme(),
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.dark,
         ),
-        home: Consumer<CustomAuthProvider>(
-          builder: (context, authProvider, _) {
-            return authProvider.user != null ? HomeScreen() : LoginScreen();
-          },
-        ));
+        textTheme: GoogleFonts.poppinsTextTheme(),
+      ),
+      home: Consumer<CustomAuthProvider>(builder: (context, authProvider, _) {
+        return StreamBuilder(
+            stream: authProvider.auth().authStateChanges(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+              if (snapshot.hasData) {
+                return const HomeScreen();
+              }
+              return const LoginScreen();
+            });
+      }),
+    );
   }
 }
