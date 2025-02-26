@@ -3,7 +3,7 @@ import 'package:note_taking_app/models/note.dart';
 import 'package:provider/provider.dart';
 import 'package:note_taking_app/view_models/custom_auth_provider.dart';
 import 'package:note_taking_app/view_models/note_provider.dart';
-import 'package:note_taking_app/views/edit_add_note_screen.dart';
+import 'package:note_taking_app/views/add_edit_note_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -64,34 +64,43 @@ class _HomeScreenState extends State<HomeScreen> {
             return ListView.builder(
                 itemCount: snapshot.data!.docs.length,
                 itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.limeAccent,
-                      radius: 35,
-                    ),
-                    title: Text(snapshot.data!.docs[index]['title']),
-                    subtitle: Text(snapshot.data!.docs[index]['content']),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AddEditNoteScreen(
-                          note: Note(
-                            noteId: snapshot.data!.docs[index].id,
-                            title: snapshot.data!.docs[index]['title'],
-                            content: snapshot.data!.docs[index]['content'],
-                            createdAt: snapshot.data!.docs[index]['createdAt'],
-                            userId: snapshot.data!.docs[index]['userId'],
+                  return Column(
+                    children: [
+                      ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: Colors.limeAccent,
+                          radius: 35,
+                        ),
+                        title: Text(snapshot.data!.docs[index]['title']),
+                        subtitle: Text(snapshot.data!.docs[index]['content']),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AddEditNoteScreen(
+                              note: Note(
+                                noteId: snapshot.data!.docs[index].id,
+                                title: snapshot.data!.docs[index]['title'],
+                                content: snapshot.data!.docs[index]['content'],
+                                createdAt: snapshot.data!.docs[index]
+                                    ['createdAt'],
+                                userId: snapshot.data!.docs[index]['userId'],
+                              ),
+                            ),
                           ),
                         ),
+                        hoverColor:
+                            isDarkMode ? Colors.white70 : Colors.blueGrey[50],
+                        trailing: IconButton(
+                            onPressed: () => {},
+                            icon: Icon(Icons.favorite_outline)),
+                        contentPadding: EdgeInsets.all(12),
+                        minVerticalPadding: 11,
                       ),
-                    ),
-                    hoverColor:
-                        isDarkMode ? Colors.white70 : Colors.blueGrey[50],
-                    trailing: IconButton(
-                        onPressed: () => {},
-                        icon: Icon(Icons.favorite_outline)),
-                    contentPadding: EdgeInsets.all(12),
-                    minVerticalPadding: 11,
+                      Divider(
+                        thickness: 1.2,
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
+                    ],
                   );
                 });
           }),

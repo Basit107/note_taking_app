@@ -4,14 +4,14 @@ class Note {
   final String noteId;
   final String title;
   final String content;
-  final Timestamp createdAt;
+  final Timestamp? createdAt;
   final String userId;
 
   Note({
     required this.noteId,
     required this.title,
     required this.content,
-    required this.createdAt,
+    this.createdAt,
     required this.userId,
   });
 

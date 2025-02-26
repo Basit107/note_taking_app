@@ -51,7 +51,15 @@ class NotesProvider with ChangeNotifier {
 
   Future<void> addNote(Note note) async {
     try {
-      await _firestore.collection('notes').add(note.toMap());
+      final searchTerms = _getSearchTerms(note.title, note.content);
+
+      await _firestore.collection('notes').add({
+        'title': note.title,
+        'content': note.content,
+        'createdAt': FieldValue.serverTimestamp(),
+        'userId': note.userId,
+        'searchTerms': searchTerms, // Store search terms
+      });
       await fetchNotes(note.userId);
     } catch (e) {
       rethrow;
